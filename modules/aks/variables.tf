@@ -1,0 +1,10 @@
+variable "resource_group_name" {}
+variable "location" {}
+variable "cluster_name" {}
+variable "kubernetes_version" {}
+variable "subnet_id" {}
+variable "aad_admin_group_object_id" {}
+variable "client_app_id" {}
+variable "server_app_id" {}
+variable "server_app_secret" {}
+variable "tenant_id" {}
