@@ -1,10 +1,23 @@
-variable "vnet_name" {}
-variable "subnet_name" {}
-variable "address_space" {}
-variable "subnet_prefix" {}
-variable "location" {}
-variable "resource_group_name" {}
-variable "tags" {
-  type = map(string)
-  default = {}
+# modules/vnet/variables.tf
+variable "name" {
+  description = "VNet name"
+  type        = string
+  default     = "aks-vnet"
+}
+
+variable "address_space" {
+  description = "Address space for the VNet"
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
+
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "East US"
+}
+
+variable "resource_group_name" {
+  description = "Resource group name"
+  type        = string
 }

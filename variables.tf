@@ -1,29 +1,37 @@
 variable "resource_group_name" {
-  description = "Name of the resource group"
-  type        = string
+  default = "aks-rg"
 }
 
 variable "location" {
-  description = "Azure region"
-  type        = string
+  default = "East US"
 }
 
 variable "vnet_name" {
-  description = "VNet name"
-  type        = string
+  default = "aks-vnet"
 }
 
-variable "subnet_name" {
-  description = "Subnet name"
-  type        = string
+variable "vnet_address_space" {
+  default = ["10.0.0.0/16"]
 }
 
-variable "address_space" {
-  description = "VNet address space"
-  type        = string
+variable "aks_name" {
+  default = "aks-cluster"
 }
 
-variable "subnet_prefix" {
-  description = "Subnet address prefix"
-  type        = string
+variable "dns_prefix" {
+  default = "aksdns"
+}
+
+variable "node_count" {
+  default = 2
+}
+
+variable "vm_size" {
+  default = "Standard_DS2_v2"
+}
+
+variable "tags" {
+  default = {
+    environment = "dev"
+  }
 }

@@ -1,13 +1,13 @@
-resource "azurerm_kubernetes_cluster" "aks" {
-  name                = var.cluster_name
+resource "azurerm_kubernetes_cluster" "this" {
+  name                = var.name
   location            = var.location
   resource_group_name = var.resource_group_name
-  dns_prefix          = "${var.cluster_name}-dns"
+  dns_prefix          = var.dns_prefix
 
   default_node_pool {
     name            = "default"
-    node_count      = 2
-    vm_size         = "Standard_DS2_v2"
+    node_count      = var.node_count
+    vm_size         = var.vm_size
     vnet_subnet_id  = var.subnet_id
   }
 
@@ -15,25 +15,19 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type = "SystemAssigned"
   }
 
-  azure_active_directory_role_based_access_control {
-    managed                = true
-    admin_group_object_ids = [var.aad_admin_group_object_id]
-    azure_rbac_enabled     = true
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      managed                = true
+      admin_group_object_ids = [var.admin_group_object_id]
+    }
   }
 
-  oidc_issuer_enabled = true
-
-  aad_profile {
-    managed           = true
-    client_app_id     = var.client_app_id
-    server_app_id     = var.server_app_id
-    server_app_secret = var.server_app_secret
-    tenant_id         = var.tenant_id
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
   }
 
-  api_server_authorized_ip_ranges = ["0.0.0.0/0"]
-
-  tags = {
-    Environment = "Dev"
-  }
+  tags = var.tags
 }
