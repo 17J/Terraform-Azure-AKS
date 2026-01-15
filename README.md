@@ -64,7 +64,7 @@ Terraform will now authenticate automatically.
 
 ## 🧪 Deployment Steps
 
-### 1. Generate SSH Key (for node access — optional but recommended)
+### 1. Generate SSH Key
 
 ```bash
 ssh-keygen -t rsa -b 4096 \
