@@ -1,77 +1,130 @@
-# 🚀 Terraform AKS Cluster Deployment on Azure
+# 🚀 Terraform AKS Cluster on Azure (Professional Guide)
 
-This project provisions an Azure Kubernetes Service (AKS) cluster using Terraform. It includes:
-
-- Azure Resource Group
-- Virtual Network and Subnet
-- AKS Cluster with a default node pool
-- SSH key configuration for node access
-
----
+This guide provides a complete, production-ready method to provision an **Azure Kubernetes Service (AKS)** cluster using **Terraform**.
 
 ## 🛠️ Prerequisites
 
-- Azure CLI: [Install](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-- Kubectl
-- Terraform CLI: [Install](https://developer.hashicorp.com/terraform/downloads)
-- SSH key (public) ready to use
+Ensure the following tools are installed (commands provided for Ubuntu/Debian-based systems):
 
-## 🧪 Steps to Deploy AKS using Terraform
+### 1. Azure CLI
 
-### 1️⃣ Authenticate to Azure
 ```bash
-az login  --use-device-code
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+az --version
 ```
 
+### 2. kubectl
 
+```bash
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+```
 
-### 2️⃣ Update your SSH key
-```hcl
-variable "ssh_public_key" {
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD..."  # Replace with your real SSH key
+### 3. Terraform
+
+```bash
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+terraform -version
+```
+
+## 🔐 Authentication – Service Principal (Best Practice for Automation)
+
+```bash
+az ad sp create-for-rbac \
+  --name "terraform-aks-sp-$(date +%s)" \
+  --role Contributor \
+  --scopes /subscriptions/$(az account show --query id -o tsv)
+```
+
+**Save the output**:
+
+```json
+{
+  "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "displayName": "...",
+  "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 ```
-### 3️⃣ Initialize Terraform
+
+Set these as environment variables (or in `.env` / CI/CD pipeline):
+
 ```bash
-cd Terraform-Code-For-Azure-AKS-Cluster
+export ARM_CLIENT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+export ARM_CLIENT_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+export ARM_TENANT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-### 4️⃣ Initialize Terraform
+Terraform will now authenticate automatically.
+
+## 🧪 Deployment Steps
+
+### 1. Generate SSH Key (for node access — optional but recommended)
+
 ```bash
+ssh-keygen -t rsa -b 4096 \
+  -f ~/.ssh/aks_node_key \
+  -N "" \
+  -C "terraform@aks-$(date +%Y%m)"
+```
+
+### 2. Navigate to Project Directory and Initialize Terraform
+
+```bash
+cd TERRAFORM-AZURE-AKS
 terraform init
 ```
 
-### 5️⃣ Preview the Terraform execution plan
-```bash
-terraform plan
+**Pro Tip:** For real projects, use a remote backend (Azure Blob Storage recommended):
+
+```hcl
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "tfstate-rg"
+    storage_account_name = "tfstateunique"
+    container_name       = "tfstate"
+    key                  = "aks-cluster.terraform.tfstate"
+  }
+}
 ```
 
-### 6 Apply the Terraform plan
+### 3. Validate and Plan
+
 ```bash
-terraform apply
+terraform validate
+terraform plan -out=aks.tfplan
 ```
 
-✅ Post-Deployment: Access Your AKS Cluster
+### 4. Apply – Deploy the Cluster
 
-After deployment, copy the ```kube_config``` output or run the following to configure kubectl:
 ```bash
-az aks get-credentials --resource-group devops17-rg --name devops17-aks
+terraform apply aks.tfplan
 ```
+
+→ Expected time: 10–20 minutes (depends on node count and region)
+
+## ✅ Post-Deployment: Connect to the Cluster
+
+Fetch credentials and verify connectivity:
+
 ```bash
+# Update resource group and cluster name based on your Terraform variables / outputs
+az aks get-credentials \
+  --resource-group my-aks-rg \
+  --name my-aks-cluster \
+  --admin   # optional — retrieves admin credentials
+
 kubectl get nodes
+kubectl get pods --all-namespaces
 ```
 
+## 🧹 Cleanup
 
- 📌 Notes
-Default node count: 3
-
-VM size: Standard_D2s_v3
-
-Azure region: East US (change in variables.tf)
-
-Identity: SystemAssigned (can integrate with ACR or Azure RBAC later)
-
-🧹 Cleanup
 ```bash
-terraform destroy
+terraform destroy --auto-approve
 ```
