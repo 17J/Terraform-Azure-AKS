@@ -1,4 +1,4 @@
-# 🚀 Terraform AKS Cluster on Azure (Professional Guide)
+# 🚀 Terraform AKS Cluster on Azure
 
 This guide provides a complete, production-ready method to provision an **Azure Kubernetes Service (AKS)** cluster using **Terraform**.
 
@@ -64,7 +64,7 @@ Terraform will now authenticate automatically.
 
 ## 🧪 Deployment Steps
 
-### 1. Generate SSH Key (for node access — optional but recommended)
+### 1. Generate SSH Key
 
 ```bash
 ssh-keygen -t rsa -b 4096 \
