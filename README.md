@@ -1,4 +1,4 @@
-# 🚀 Terraform AKS Cluster on Azure (Professional Guide)
+# 🚀 Terraform AKS Cluster on Azure
 
 This guide provides a complete, production-ready method to provision an **Azure Kubernetes Service (AKS)** cluster using **Terraform**.
 
